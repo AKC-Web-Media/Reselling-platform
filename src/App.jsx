@@ -5,25 +5,27 @@ import Cart from "./Cart";
 import Footer from "./Footer";
 import "./App.css";
 
-const products = [
+const initialProducts = [
   { id: 1, name: "Car", category: "Vehicles", price: 2000, image: "https://via.placeholder.com/150" },
   { id: 2, name: "Bike", category: "Vehicles", price: 1500, image: "https://via.placeholder.com/150" },
-  { id: 3, name: "Laptop", category: "Electronics & Appliances", price: 500, image: "https://via.placeholder.com/150" },
-  { id: 4, name: "Fridge", category: "Electronics & Appliances", price: 300, image: "https://via.placeholder.com/150" },
-  { id: 5, name: "Table", category: "Furniture", price: 100, image: "https://via.placeholder.com/150" },
-  { id: 6, name: "Sofa", category: "Furniture", price: 400, image: "https://via.placeholder.com/150" },
-  { id: 7, name: "Dog", category: "Pets", price: 250, image: "https://via.placeholder.com/150" },
-  { id: 8, name: "Cat Food", category: "Pets", price: 30, image: "https://via.placeholder.com/150" },
-  { id: 9, name: "Watch", category: "Fashion", price: 80, image: "https://via.placeholder.com/150" },
-  { id: 10, name: "T-Shirt", category: "Fashion", price: 25, image: "https://via.placeholder.com/150" },
-  { id: 11, name: "Cookware Set", category: "Home & Kitchen", price: 120, image: "https://via.placeholder.com/150" },
-  { id: 12, name: "Microwave", category: "Home & Kitchen", price: 180, image: "https://via.placeholder.com/150" },
+  { id: 3, name: "Laptop", category: "Electronics", price: 500, image: "https://via.placeholder.com/150" },
+  { id: 4, name: "Phone", category: "Electronics", price: 300, image: "https://via.placeholder.com/150" },
+  { id: 5, name: "Watch", category: "Accessories", price: 150, image: "https://via.placeholder.com/150" },
+  { id: 6, name: "Shoes", category: "Fashion", price: 100, image: "https://via.placeholder.com/150" },
+  { id: 7, name: "T-Shirt", category: "Clothing", price: 50, image: "https://via.placeholder.com/150" },
+  { id: 8, name: "Headphones", category: "Electronics", price: 200, image: "https://via.placeholder.com/150" },
+  { id: 9, name: "Backpack", category: "Accessories", price: 80, image: "https://via.placeholder.com/150" },
+  { id: 10, name: "Sunglasses", category: "Fashion", price: 120, image: "https://via.placeholder.com/150" },
+  { id: 11, name: "Tablet", category: "Electronics", price: 400, image: "https://via.placeholder.com/150" },
+  { id: 12, name: "Chair", category: "Furniture", price: 250, image: "https://via.placeholder.com/150" },
 ];
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [products, setProducts] = useState(initialProducts);
 
   const addToCart = (product) => {
     setCartItems((prevCart) => {
@@ -38,24 +40,49 @@ function App() {
     });
   };
 
+  const addProduct = (newProduct) => {
+    setProducts((prevProducts) => [
+      { 
+        id: prevProducts.length + 1, 
+        ...newProduct 
+      }, 
+      ...prevProducts
+    ]);
+  };
+
   const filteredProducts = products.filter(
     (p) =>
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+      (p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (categoryFilter === "" || p.category === categoryFilter || 
+       (p.subcategory && p.subcategory === categoryFilter))
   );
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar Section */}
-      <header>
-        <Navbar cartItems={cartItems} toggleCart={() => setCartOpen(!cartOpen)} setSearchQuery={setSearchQuery} />
-      </header>
+      <Navbar 
+        cartItems={cartItems} 
+        toggleCart={() => setCartOpen(!cartOpen)} 
+        setSearchQuery={setSearchQuery} 
+        setCategoryFilter={setCategoryFilter}
+        addProduct={addProduct} 
+      />
+      
+      {cartOpen && <Cart cartItems={cartItems} toggleCart={() => setCartOpen(!cartOpen)} />}
 
-      {/* Main Content */}
       <main className="flex-grow container mx-auto mt-6 px-4">
-        {cartOpen && <Cart cartItems={cartItems} toggleCart={() => setCartOpen(!cartOpen)} />}
-
         <h1 className="text-2xl font-bold text-center mb-4">Our Products</h1>
+        {categoryFilter && (
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Category: {categoryFilter}</h2>
+            <button 
+              onClick={() => setCategoryFilter("")}
+              className="px-3 py-1 bg-gray-200 rounded-md text-sm"
+            >
+              Clear Filter
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
@@ -67,10 +94,7 @@ function App() {
         </div>
       </main>
 
-      {/* Footer Section */}
-      <footer className="mt-auto">
-        <Footer />
-      </footer>
+      <Footer />
     </div>
   );
 }
