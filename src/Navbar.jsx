@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaSearch, FaUser } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import logo from "./assets/logo.png";
 
@@ -28,108 +28,105 @@ const categories = {
 };
 
 const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addProduct }) => {
-  // Basic state variables
   const [search, setSearch] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [username, setUsername] = useState("User123");
-  const [avatar, setAvatar] = useState(null);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  
-  // Sell form state
+
   const [sellFormOpen, setSellFormOpen] = useState(false);
-  const [productData, setProductData] = useState({
-    name: "",
-    price: "",
-    description: "",
-    category: "Electronics & Appliances",
-    subcategory: "",
-  });
+  const [productName, setProductName] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [productCategory, setProductCategory] = useState("Electronics & Appliances");
+  const [productSubCategory, setProductSubCategory] = useState("");
   const [productImages, setProductImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  
+  // Added seller info states
+  const [sellerUsername, setSellerUsername] = useState("");
+  const [sellerAvatar, setSellerAvatar] = useState(null);
 
-  // Handle file reads for both avatar and product images
-  const readFile = (file, callback) => {
-    const reader = new FileReader();
-    reader.onload = () => callback(reader.result);
-    reader.readAsDataURL(file);
+  const handleSearch = (e) => {
+    setSearch(e.target.value.toLowerCase());
+    setSearchQuery(e.target.value.toLowerCase());
   };
 
-  // Avatar image handler
-  const handleAvatarChange = (e) => {
-    if (e.target.files[0]) readFile(e.target.files[0], setAvatar);
-  };
-
-  // Product images handler
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files).slice(0, 4);
     const previews = [];
-    
-    files.forEach(file => {
-      readFile(file, result => {
-        previews.push(result);
-        if (previews.length === files.length) setImagePreviews(previews);
-      });
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        previews.push(reader.result);
+        if (previews.length === files.length) {
+          setImagePreviews(previews);
+        }
+      };
+      reader.readAsDataURL(file);
     });
-    
+
     setProductImages(files);
   };
 
-  // Form input handler
-  const handleProductInput = (e) => {
-    const { name, value } = e.target;
-    setProductData({
-      ...productData,
-      [name]: value,
-    });
+  // Handle avatar image change
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSellerAvatar(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  // Sell form submission
   const handleSellSubmit = (e) => {
     e.preventDefault();
 
-    const priceValue = Number(productData.price);
+    if (!sellerUsername.trim()) {
+      alert("Please enter a seller username.");
+      return;
+    }
+
+    const priceValue = Number(productPrice);
+
+    // Validate price: must be positive whole number
     if (!Number.isInteger(priceValue) || priceValue <= 0) {
       alert("Please enter a valid whole number greater than 0 for the price.");
       return;
     }
 
     const newProduct = {
-      ...productData,
+      name: productName,
       price: priceValue,
+      description: productDescription,
+      category: productCategory,
+      subcategory: productSubCategory,
       images: imagePreviews.length > 0 ? imagePreviews : ["https://via.placeholder.com/150"],
-      seller: username,
+      seller: sellerUsername,
+      sellerAvatar: sellerAvatar,
     };
 
     addProduct(newProduct);
 
-    // Reset form
+    alert(`Product Added:
+Name: ${productName}
+Price: ${productPrice}
+Category: ${productCategory}
+Subcategory: ${productSubCategory}
+Description: ${productDescription}
+Seller: ${sellerUsername}`);
+
     setSellFormOpen(false);
-    setProductData({
-      name: "",
-      price: "",
-      description: "",
-      category: "Electronics & Appliances",
-      subcategory: "",
-    });
+    setProductName("");
+    setProductPrice("");
+    setProductDescription("");
+    setProductCategory("Electronics & Appliances");
+    setProductSubCategory("");
     setProductImages([]);
     setImagePreviews([]);
+    // Don't reset seller info
   };
-
-  // User avatar component for reuse
-  const UserAvatar = ({ size = 10 }) => (
-    avatar ? (
-      <img
-        src={avatar}
-        alt="User Avatar"
-        className={`w-${size} h-${size} rounded-full object-cover border-2 border-gray-300`}
-      />
-    ) : (
-      <div className={`w-${size} h-${size} rounded-full bg-gray-200 flex items-center justify-center`}>
-        <FaUser className="text-gray-500" />
-      </div>
-    )
-  );
 
   return (
     <>
@@ -145,10 +142,7 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
             placeholder="Search products..."
             value={search}
             className="px-4 py-2 outline-none w-full"
-            onChange={(e) => {
-              setSearch(e.target.value.toLowerCase());
-              setSearchQuery(e.target.value.toLowerCase());
-            }}
+            onChange={handleSearch}
           />
           <button className="px-5 py-3 bg-gray-200">
             <FaSearch />
@@ -168,32 +162,51 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
             onClick={() => setSellFormOpen(true)}
           >
             <IoMdAdd className="text-xl" />
-            <span>{username} | SELL</span>
+            <span>SELL</span>
           </button>
 
           <button onClick={toggleCart} className="relative">
             🛒 <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">{cartItems.length}</span>
           </button>
+        </div>
+      </nav>
 
-          {/* User avatar dropdown */}
-          <div className="relative">
-            <button onClick={() => setProfileMenuOpen(!profileMenuOpen)}>
-              <UserAvatar />
-            </button>
-
-            {profileMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg py-2 z-10">
-                <div className="px-4 py-2 border-b">
-                  <p className="text-sm font-medium">Signed in as</p>
-                  <p className="text-sm font-bold">{username}</p>
-                </div>
+      {sellFormOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-md w-96 max-h-screen overflow-y-auto">
+            <h2 className="text-lg font-bold mb-4">Sell Your Product</h2>
+            <form onSubmit={handleSellSubmit}>
+              {/* Seller information section */}
+              <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                <h3 className="text-md font-medium mb-2">Seller Information</h3>
                 
-                <div className="px-4 py-2">
-                  <p className="text-sm font-medium mb-2">Profile Picture</p>
-                  <div className="flex items-center space-x-2">
-                    <UserAvatar />
-                    <label className="cursor-pointer text-blue-500 text-sm">
-                      Change
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex-shrink-0">
+                    {sellerAvatar ? (
+                      <img
+                        src={sellerAvatar}
+                        alt="Seller Avatar"
+                        className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                        👤
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex-grow">
+                    <input
+                      type="text"
+                      placeholder="Your Username"
+                      value={sellerUsername}
+                      onChange={(e) => setSellerUsername(e.target.value)}
+                      className="w-full border p-2 rounded mb-1"
+                      required
+                    />
+                    
+                    <label className="text-xs text-blue-500 cursor-pointer inline-block">
+                      Upload profile picture
                       <input
                         type="file"
                         accept="image/*"
@@ -203,95 +216,61 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
                     </label>
                   </div>
                 </div>
-
-                <div className="px-4 py-2">
-                  <p className="text-sm font-medium mb-2">Username</p>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full px-2 py-1 border rounded text-sm"
-                  />
-                </div>
-
-                <div className="px-4 py-2 border-t">
-                  <button 
-                    className="text-sm text-red-500 font-medium" 
-                    onClick={() => setProfileMenuOpen(false)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Sell form modal */}
-      {sellFormOpen && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-md w-96 max-h-screen overflow-y-auto">
-            <h2 className="text-lg font-bold mb-4">Sell Your Product</h2>
-            <form onSubmit={handleSellSubmit}>
-              <div className="flex items-center mb-3 gap-2">
-                <UserAvatar size="8" />
-                <p className="font-medium">{username}</p>
               </div>
 
+              {/* Product information */}
               <input
                 type="text"
-                name="name"
                 placeholder="Product Name"
-                value={productData.name}
-                onChange={handleProductInput}
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
                 className="w-full border p-2 rounded mb-3"
                 required
               />
               <input
                 type="number"
-                name="price"
                 placeholder="Price"
-                value={productData.price}
-                onChange={handleProductInput}
+                value={productPrice}
+                onChange={(e) => setProductPrice(e.target.value)}
                 className="w-full border p-2 rounded mb-3"
                 required
               />
               <select
-                name="category"
-                value={productData.category}
+                value={productCategory}
                 onChange={(e) => {
-                  handleProductInput(e);
-                  setProductData(prev => ({...prev, subcategory: ""}));
+                  setProductCategory(e.target.value);
+                  setProductSubCategory("");
                 }}
                 className="w-full border p-2 rounded mb-3"
                 required
               >
                 {Object.keys(categories).map((category) => (
-                  <option key={category} value={category}>{category}</option>
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
               </select>
 
-              {productData.category && categories[productData.category] && (
+              {productCategory && categories[productCategory] && (
                 <select
-                  name="subcategory"
-                  value={productData.subcategory}
-                  onChange={handleProductInput}
+                  value={productSubCategory}
+                  onChange={(e) => setProductSubCategory(e.target.value)}
                   className="w-full border p-2 rounded mb-3"
                   required
                 >
                   <option value="" disabled>Select Subcategory</option>
-                  {categories[productData.category].map((sub) => (
-                    <option key={sub} value={sub}>{sub}</option>
+                  {categories[productCategory].map((sub) => (
+                    <option key={sub} value={sub}>
+                      {sub}
+                    </option>
                   ))}
                 </select>
               )}
 
               <textarea
-                name="description"
                 placeholder="Description"
-                value={productData.description}
-                onChange={handleProductInput}
+                value={productDescription}
+                onChange={(e) => setProductDescription(e.target.value)}
                 className="w-full border p-2 rounded mb-3"
                 required
               />
@@ -318,8 +297,12 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
                       <button
                         type="button"
                         onClick={() => {
-                          setImagePreviews(prev => prev.filter((_, i) => i !== index));
-                          setProductImages(prev => prev.filter((_, i) => i !== index));
+                          const newPreviews = [...imagePreviews];
+                          const newFiles = [...productImages];
+                          newPreviews.splice(index, 1);
+                          newFiles.splice(index, 1);
+                          setImagePreviews(newPreviews);
+                          setProductImages(newFiles);
                         }}
                         className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded"
                       >
@@ -354,7 +337,6 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
         </div>
       )}
 
-      {/* Categories modal */}
       {categoryOpen && (
         <div
           className="fixed inset-0 bg-white z-50 flex flex-col items-center p-6 overflow-y-auto"
