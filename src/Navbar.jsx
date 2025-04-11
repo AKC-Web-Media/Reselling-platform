@@ -1,72 +1,135 @@
 import { useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaUser } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import logo from "./assets/logo.png";
 
 const categories = {
-  "Vehicles": ["Cars", "Bikes", "Motorcycles", "Scooters", "Spare Parts", "Bicycles"],
-  "Properties": ["For Sale: Houses & Apartments", "For Rent: Houses & Apartments", "Lands & Plots", "For Rent: Shops & Offices", "For Sale: Shops & Offices", "PG & Guest Houses"],
-  "Electronics & Appliances": ["TVs, Video - Audio", "Kitchen & Other Appliances", "Computers & Laptops", "Cameras & Lenses", "Games & Entertainment", "Fridges", "Computer Accessories", "Hard Disks, Printers & Monitors", "ACs", "Washing Machines"],
+  Vehicles: ["Cars", "Bikes", "Motorcycles", "Scooters", "Spare Parts", "Bicycles"],
+  Properties: [
+    "For Sale: Houses & Apartments",
+    "For Rent: Houses & Apartments",
+    "Lands & Plots",
+    "For Rent: Shops & Offices",
+    "For Sale: Shops & Offices",
+    "PG & Guest Houses",
+  ],
+  "Electronics & Appliances": [
+    "TVs, Video - Audio",
+    "Kitchen & Other Appliances",
+    "Computers & Laptops",
+    "Cameras & Lenses",
+    "Games & Entertainment",
+    "Fridges",
+    "Computer Accessories",
+    "Hard Disks, Printers & Monitors",
+    "ACs",
+    "Washing Machines",
+  ],
 };
 
 const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addProduct }) => {
+  // Basic state variables
   const [search, setSearch] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-
+  const [username, setUsername] = useState("User123");
+  const [avatar, setAvatar] = useState(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  
+  // Sell form state
   const [sellFormOpen, setSellFormOpen] = useState(false);
-  const [productName, setProductName] = useState("");
-  const [productPrice, setProductPrice] = useState("");
-  const [productDescription, setProductDescription] = useState("");
-  const [productCategory, setProductCategory] = useState("Electronics"); // Default category
-  const [productImage, setProductImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [productData, setProductData] = useState({
+    name: "",
+    price: "",
+    description: "",
+    category: "Electronics & Appliances",
+    subcategory: "",
+  });
+  const [productImages, setProductImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
 
-  const handleSearch = (e) => {
-    setSearch(e.target.value.toLowerCase());
-    setSearchQuery(e.target.value.toLowerCase());
+  // Handle file reads for both avatar and product images
+  const readFile = (file, callback) => {
+    const reader = new FileReader();
+    reader.onload = () => callback(reader.result);
+    reader.readAsDataURL(file);
   };
 
+  // Avatar image handler
+  const handleAvatarChange = (e) => {
+    if (e.target.files[0]) readFile(e.target.files[0], setAvatar);
+  };
+
+  // Product images handler
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Create a preview URL for the selected image
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-      setProductImage(file);
-    }
+    const files = Array.from(e.target.files).slice(0, 4);
+    const previews = [];
+    
+    files.forEach(file => {
+      readFile(file, result => {
+        previews.push(result);
+        if (previews.length === files.length) setImagePreviews(previews);
+      });
+    });
+    
+    setProductImages(files);
   };
 
+  // Form input handler
+  const handleProductInput = (e) => {
+    const { name, value } = e.target;
+    setProductData({
+      ...productData,
+      [name]: value,
+    });
+  };
+
+  // Sell form submission
   const handleSellSubmit = (e) => {
     e.preventDefault();
-    
-    // Create new product object
+
+    const priceValue = Number(productData.price);
+    if (!Number.isInteger(priceValue) || priceValue <= 0) {
+      alert("Please enter a valid whole number greater than 0 for the price.");
+      return;
+    }
+
     const newProduct = {
-      name: productName,
-      price: Number(productPrice),
-      description: productDescription,
-      category: productCategory,
-      // Use the image preview if available, otherwise use placeholder
-      image: imagePreview || "https://via.placeholder.com/150"
+      ...productData,
+      price: priceValue,
+      images: imagePreviews.length > 0 ? imagePreviews : ["https://via.placeholder.com/150"],
+      seller: username,
     };
-    
-    // Add the new product to the products array
+
     addProduct(newProduct);
-    
-    // Alert for confirmation
-    alert(`Product Added: \nName: ${productName}\nPrice: ${productPrice}\nDescription: ${productDescription}`);
-    
-    // Reset form and close it
+
+    // Reset form
     setSellFormOpen(false);
-    setProductName("");
-    setProductPrice("");
-    setProductDescription("");
-    setProductImage(null);
-    setImagePreview(null);
+    setProductData({
+      name: "",
+      price: "",
+      description: "",
+      category: "Electronics & Appliances",
+      subcategory: "",
+    });
+    setProductImages([]);
+    setImagePreviews([]);
   };
+
+  // User avatar component for reuse
+  const UserAvatar = ({ size = 10 }) => (
+    avatar ? (
+      <img
+        src={avatar}
+        alt="User Avatar"
+        className={`w-${size} h-${size} rounded-full object-cover border-2 border-gray-300`}
+      />
+    ) : (
+      <div className={`w-${size} h-${size} rounded-full bg-gray-200 flex items-center justify-center`}>
+        <FaUser className="text-gray-500" />
+      </div>
+    )
+  );
 
   return (
     <>
@@ -82,7 +145,10 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
             placeholder="Search products..."
             value={search}
             className="px-4 py-2 outline-none w-full"
-            onChange={handleSearch}
+            onChange={(e) => {
+              setSearch(e.target.value.toLowerCase());
+              setSearchQuery(e.target.value.toLowerCase());
+            }}
           />
           <button className="px-5 py-3 bg-gray-200">
             <FaSearch />
@@ -102,112 +168,176 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
             onClick={() => setSellFormOpen(true)}
           >
             <IoMdAdd className="text-xl" />
-            <span>SELL</span>
+            <span>{username} | SELL</span>
           </button>
 
           <button onClick={toggleCart} className="relative">
             🛒 <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">{cartItems.length}</span>
           </button>
+
+          {/* User avatar dropdown */}
+          <div className="relative">
+            <button onClick={() => setProfileMenuOpen(!profileMenuOpen)}>
+              <UserAvatar />
+            </button>
+
+            {profileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg py-2 z-10">
+                <div className="px-4 py-2 border-b">
+                  <p className="text-sm font-medium">Signed in as</p>
+                  <p className="text-sm font-bold">{username}</p>
+                </div>
+                
+                <div className="px-4 py-2">
+                  <p className="text-sm font-medium mb-2">Profile Picture</p>
+                  <div className="flex items-center space-x-2">
+                    <UserAvatar />
+                    <label className="cursor-pointer text-blue-500 text-sm">
+                      Change
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="px-4 py-2">
+                  <p className="text-sm font-medium mb-2">Username</p>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+                </div>
+
+                <div className="px-4 py-2 border-t">
+                  <button 
+                    className="text-sm text-red-500 font-medium" 
+                    onClick={() => setProfileMenuOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
-      {/* Sell Form Modal */}
+      {/* Sell form modal */}
       {sellFormOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-md w-96 max-h-screen overflow-y-auto">
             <h2 className="text-lg font-bold mb-4">Sell Your Product</h2>
             <form onSubmit={handleSellSubmit}>
+              <div className="flex items-center mb-3 gap-2">
+                <UserAvatar size="8" />
+                <p className="font-medium">{username}</p>
+              </div>
+
               <input
                 type="text"
+                name="name"
                 placeholder="Product Name"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
+                value={productData.name}
+                onChange={handleProductInput}
                 className="w-full border p-2 rounded mb-3"
                 required
               />
               <input
                 type="number"
+                name="price"
                 placeholder="Price"
-                value={productPrice}
-                onChange={(e) => setProductPrice(e.target.value)}
+                value={productData.price}
+                onChange={handleProductInput}
                 className="w-full border p-2 rounded mb-3"
                 required
               />
               <select
-                value={productCategory}
-                onChange={(e) => setProductCategory(e.target.value)}
+                name="category"
+                value={productData.category}
+                onChange={(e) => {
+                  handleProductInput(e);
+                  setProductData(prev => ({...prev, subcategory: ""}));
+                }}
                 className="w-full border p-2 rounded mb-3"
                 required
               >
                 {Object.keys(categories).map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
+                  <option key={category} value={category}>{category}</option>
                 ))}
               </select>
+
+              {productData.category && categories[productData.category] && (
+                <select
+                  name="subcategory"
+                  value={productData.subcategory}
+                  onChange={handleProductInput}
+                  className="w-full border p-2 rounded mb-3"
+                  required
+                >
+                  <option value="" disabled>Select Subcategory</option>
+                  {categories[productData.category].map((sub) => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
+              )}
+
               <textarea
+                name="description"
                 placeholder="Description"
-                value={productDescription}
-                onChange={(e) => setProductDescription(e.target.value)}
+                value={productData.description}
+                onChange={handleProductInput}
                 className="w-full border p-2 rounded mb-3"
                 required
               />
-              
-              {/* Image Upload Section */}
+
               <div className="mb-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Image
+                  Product Images (max 4)
                 </label>
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col w-full h-32 border-2 border-dashed hover:bg-gray-100 hover:border-gray-300 cursor-pointer">
-                    <div className="flex flex-col items-center justify-center pt-7">
-                      {imagePreview ? (
-                        <img 
-                          src={imagePreview} 
-                          alt="Preview" 
-                          className="w-24 h-24 object-cover mb-1"
-                        />
-                      ) : (
-                        <>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-gray-400 group-hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
-                            Upload image
-                          </p>
-                        </>
-                      )}
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="mb-2"
+                />
+                <div className="flex gap-2 flex-wrap">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-20 h-20 object-cover rounded"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImagePreviews(prev => prev.filter((_, i) => i !== index));
+                          setProductImages(prev => prev.filter((_, i) => i !== index));
+                        }}
+                        className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded"
+                      >
+                        ✕
+                      </button>
                     </div>
-                    <input 
-                      type="file" 
-                      className="opacity-0" 
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                  </label>
+                  ))}
                 </div>
-                {imagePreview && (
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setProductImage(null);
-                      setImagePreview(null);
-                    }}
-                    className="mt-1 text-xs text-red-500 hover:text-red-700"
-                  >
-                    Remove image
-                  </button>
-                )}
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   className="px-4 py-2 bg-gray-300 rounded"
                   onClick={() => {
                     setSellFormOpen(false);
-                    setProductImage(null);
-                    setImagePreview(null);
+                    setProductImages([]);
+                    setImagePreviews([]);
                   }}
                 >
                   Cancel
@@ -224,9 +354,9 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
         </div>
       )}
 
-      {/* Category Dropdown */}
+      {/* Categories modal */}
       {categoryOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-white z-50 flex flex-col items-center p-6 overflow-y-auto"
           onClick={() => setCategoryOpen(false)}
         >
@@ -235,10 +365,10 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
           {!selectedCategory ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {Object.keys(categories).map((category, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="text-gray-700 p-2 cursor-pointer hover:underline font-semibold"
-                  onClick={(e) => { 
+                  onClick={(e) => {
                     e.stopPropagation();
                     setSelectedCategory(category);
                   }}
@@ -249,8 +379,8 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
             </div>
           ) : (
             <>
-              <button 
-                className="mb-4 px-4 py-2 bg-gray-300 rounded" 
+              <button
+                className="mb-4 px-4 py-2 bg-gray-300 rounded"
                 onClick={() => setSelectedCategory(null)}
               >
                 ← Back
@@ -258,8 +388,8 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
               <h3 className="text-xl font-bold mb-2">{selectedCategory}</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {categories[selectedCategory].map((sub, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="text-gray-700 p-2 cursor-pointer hover:underline"
                     onClick={() => {
                       setCategoryFilter(sub);
@@ -273,7 +403,7 @@ const Navbar = ({ cartItems, toggleCart, setSearchQuery, setCategoryFilter, addP
             </>
           )}
 
-          <button 
+          <button
             className="mt-6 px-6 py-2 bg-red-500 text-white rounded"
             onClick={() => setCategoryOpen(false)}
           >
