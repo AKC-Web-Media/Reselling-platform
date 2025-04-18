@@ -12,3 +12,9 @@ export const projectID = import.meta.env.VITE_PROJECT_ID;
 export const databaseID = import.meta.env.VITE_DATABASE_ID;
 
 export const appwriteAPIKey = import.meta.env.VITE_APPWRITE_API_KEY;
+
+export const productCollectionId = import.meta.env
+  .VITE_APPWRITE_PRODUCT_COLLECTION_ID;
+export const productRequestsCollectionId = import.meta.env
+  .VITE_APPWRITE_PRODUCT_REQUESTS_COLLECTION_ID;
+export const bucketId = import.meta.env.VITE_APPWRITE_BUCKET_ID;
