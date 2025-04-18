@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { FaSearch, FaChevronLeft, FaImages } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import { RiShoppingCart2Line } from "react-icons/ri";
-import logo from "./assets/logo.png";
+import logo from "../assets/logo.png";
 
 const categories = {
   Vehicles: ["Cars", "Bikes", "Motorcycles", "Scooters", "Spare Parts", "Bicycles"],
