@@ -18,5 +18,30 @@ async function readProductById(id) {
   }
 }
 
+async function listAllProducts() {
+  try {
+    const documents = await databases.listDocuments(
+      databaseID,
+      productCollectionId,
+      id
+    );
+    return documents;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
-    export {readProductById, listAllProducts}
+async function readProductRequestById(id) {
+  try {
+    const document = await databases.getDocument(
+      databaseID,
+      productRequestsCollectionId,
+      id
+    );
+    return document;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
