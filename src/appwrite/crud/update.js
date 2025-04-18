@@ -31,3 +31,30 @@ async function updateProduct(updatedFormat, productId) {
     throw error;
   }
 }
+
+/*
+format.
+{
+    product
+    to
+    bid_price
+    name
+    message
+    contact_no
+}
+*/
+async function updateProductRequest(updatedFormat, productRequestId) {
+  try {
+    await databases.updateDocument(
+      databaseID,
+      productRequestsCollectionId,
+      productRequestId,
+      updatedFormat
+    );
+    return null;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+export { updateProduct, updateProductRequest };
