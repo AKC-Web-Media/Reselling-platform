@@ -45,3 +45,18 @@ async function readProductRequestById(id) {
     throw error;
   }
 }
+
+async function listProductRequests() {
+  try {
+    const documents= await databases.listDocuments(
+      databaseID,
+      productRequestsCollectionId
+    );
+    return documents;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export { readProductById, listAllProducts , readProductRequestById, listProductRequests};
