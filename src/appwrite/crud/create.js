@@ -35,4 +35,18 @@ async function createProduct({
         throw error;
     }
 }
-export {createProduct}
+export {createProduct}async function createPurchaseRequest({product, to , bid_price, name, message, contact_no}) {
+    try {
+        const document = await databases.createDocument(
+            databaseID,
+            productRequestsCollectionId,
+            ID.unique(),
+            {
+                product, to, bid_price,name, message, contact_no 
+            }
+        );
+        return document;
+    } catch (error) {
+        throw error;
+    }
+}
