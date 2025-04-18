@@ -12,3 +12,19 @@ async function readProductById(id) {
             throw error;
         }
     }
+
+    async function listAllProducts() {
+        try {
+            const documents= await databases.listDocuments(
+                databaseID,
+                productCollectionId,
+                id
+            );
+            return documents;
+        } catch (error) {
+            console.error(error)
+            throw error;
+        }
+    }
+
+    export {readProductById, listAllProducts}
