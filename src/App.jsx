@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import ProductCard from "./ProductCard";
 import Cart from "./Cart";
 import Footer from "./Footer";
 import "./App.css";
+import { auth } from "./appwrite/auth";
 
 const initialProducts = [
   { id: 1, name: "Car", category: "Vehicles", price: 2000, image: "https://via.placeholder.com/150" },
