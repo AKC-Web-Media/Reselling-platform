@@ -91,6 +91,7 @@ async function listProductsByPriceRange(minPrice, maxPrice) {
     throw error;
   }
 }
+
 async function searchProductsByName(searchTerm) {
   try {
     const documents = await databases.listDocuments(
@@ -121,3 +122,29 @@ async function listRequestsByBidPrice(minBid) {
     throw error;
   }
 }
+
+async function listRequestsByUser(userId) {
+  try {
+    const documents = await databases.listDocuments(
+      databaseID,
+      productRequestsCollectionId,
+      [Query.equal("to", userId)]
+    );
+    return documents;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export {
+  readProductById,
+  listAllProducts,
+  readProductRequestById,
+  listProductRequests,
+  listProductsByCategory,
+  listProductsByPriceRange,
+  searchProductsByName,
+  listRequestsByBidPrice,
+  listRequestsByUser,
+};
