@@ -1,5 +1,10 @@
 import { ID } from "appwrite";
-import { databaseID, databases, productCollectionId, productRequestsCollectionId } from "../appwrite";
+import {
+  databaseID,
+  databases,
+  productCollectionId,
+  productRequestsCollectionId,
+} from "../appwrite";
 
 /**
  * Creates a new product document in the database
@@ -17,37 +22,37 @@ import { databaseID, databases, productCollectionId, productRequestsCollectionId
  * @throws {Error} If document creation fails
  */
 async function createProduct({
-    userId,
-    category,
-    product_name,
-    product_description,
-    price,
-    image1,
-    image2,
-    image3,
-    image4
+  userId,
+  category,
+  product_name,
+  product_description,
+  price,
+  image_1,
+  image_2,
+  image_3,
+  image_4,
 }) {
-    try {
-        const document = await databases.createDocument(
-            databaseID,
-            productCollectionId,
-            ID.unique(),
-            {
-                userId,
-                category,
-                product_name,
-                product_description,
-                price,
-                image1,
-                image2,
-                image3,
-                image4
-            }
-        );
-        return document;
-    } catch (error) {
-        throw error;
-    }
+  try {
+    const document = await databases.createDocument(
+      databaseID,
+      productCollectionId,
+      ID.unique(),
+      {
+        userId,
+        category,
+        product_name,
+        product_description,
+        price,
+        image_1: image_1 || null,
+        image_2: image_2 || null,
+        image_3: image_3 || null,
+        image_4: image_4 || null,
+      }
+    );
+    return document;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -62,20 +67,32 @@ async function createProduct({
  * @returns {Promise<Object>} The created document object
  * @throws {Error} If document creation fails
  */
-async function createPurchaseRequest({product, to , bid_price, name, message, contact_no}) {
-    try {
-        const document = await databases.createDocument(
-            databaseID,
-            productRequestsCollectionId,
-            ID.unique(),
-            {
-                product, to, bid_price,name, message, contact_no 
-            }
-        );
-        return document;
-    } catch (error) {
-        throw error;
-    }
+async function createPurchaseRequest({
+  product,
+  to,
+  bid_price,
+  name,
+  message,
+  contact_no,
+}) {
+  try {
+    const document = await databases.createDocument(
+      databaseID,
+      productRequestsCollectionId,
+      ID.unique(),
+      {
+        product,
+        to,
+        bid_price,
+        name,
+        message,
+        contact_no,
+      }
+    );
+    return document;
+  } catch (error) {
+    throw error;
+  }
 }
 
-export {createProduct, createPurchaseRequest}
+export { createProduct, createPurchaseRequest };
