@@ -1,3 +1,4 @@
+import { Query } from "appwrite";
 import {
   databaseID,
   databases,
@@ -22,8 +23,7 @@ async function listAllProducts() {
   try {
     const documents = await databases.listDocuments(
       databaseID,
-      productCollectionId,
-      id
+      productCollectionId
     );
     return documents;
   } catch (error) {
@@ -48,7 +48,7 @@ async function readProductRequestById(id) {
 
 async function listProductRequests() {
   try {
-    const documents= await databases.listDocuments(
+    const documents = await databases.listDocuments(
       databaseID,
       productRequestsCollectionId
     );
