@@ -75,4 +75,19 @@ async function listProductsByCategory(category) {
   }
 }
 
-export { readProductById, listAllProducts , readProductRequestById, listProductRequests};
+async function listProductsByPriceRange(minPrice, maxPrice) {
+  try {
+    const documents = await databases.listDocuments(
+      databaseID,
+      productCollectionId,
+      [
+        Query.greaterThanEqual("price", minPrice),
+        Query.lessThanEqual("price", maxPrice),
+      ]
+    );
+    return documents;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
