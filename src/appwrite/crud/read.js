@@ -107,3 +107,17 @@ async function searchProductsByName(searchTerm) {
     throw error;
   }
 }
+
+async function listRequestsByBidPrice(minBid) {
+  try {
+    const documents = await databases.listDocuments(
+      databaseID,
+      productRequestsCollectionId,
+      [Query.greaterThan("bid_price", minBid)]
+    );
+    return documents;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
