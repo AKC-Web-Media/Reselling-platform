@@ -58,5 +58,21 @@ async function listProductRequests() {
     throw error;
   }
 }
+async function listProductsByCategory(category) {
+  try {
+    const documents = await databases.listDocuments(
+      databaseID,
+      productCollectionId,
+      [
+        // Appwrite Query to filter by category
+        Query.equal("category", category),
+      ]
+    );
+    return documents;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
 export { readProductById, listAllProducts , readProductRequestById, listProductRequests};
