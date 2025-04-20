@@ -37,6 +37,7 @@ format.
 {
     product
     to
+    isRead
     bid_price
     name
     message
